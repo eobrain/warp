@@ -72,9 +72,21 @@ class Particle {
 
 const particles = [...Array(N)].map(_ => new Particle())
 
+// let hue = 0
+let labA = 0
+let labB = 0
+
+const abWrap = ab => ab < -100 ? 0 : (ab > 100 ? 0 : ab)
+const abNext = ab => abWrap(ab + (Math.random() - 0.5) * DT * 1000)
+
 function draw () {
-  ctx.globalCompositeOperation = 'destination-over'
-  ctx.clearRect(0, 0, SIZE[X], SIZE[Y])
+  // ctx.globalCompositeOperation = 'destination-over'
+  // ctx.clearRect(0, 0, SIZE[X], SIZE[Y])
+  // ctx.strokeStyle = `hsl(${Math.trunc(hue) % 360} 50% 50%)`
+  // hue += DT * 10
+  ctx.strokeStyle = `lab(50% ${labA}% ${labB}%)`
+  labA = abNext(labA)
+  labB = abNext(labB)
   for (const particle of particles) {
     particle.draw()
   }
