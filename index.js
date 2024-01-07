@@ -7,17 +7,20 @@ const X = 0
 const Y = 1
 const D = [X, Y]
 
+const DT = 0.1
+const MASS = 1
 const SIZE = [...D].map(_ => 500)
-const SPEED = 10
+const SPEED = 0
 
-const DTDP = 0.1
+const G = 10
 
-const GRANULARITY = 100
+const N = 10
+const GRANULARITY = 10
 const space = [...Array(2)].map(_ =>
   [...Array(SIZE[X] / GRANULARITY)].map(_ =>
-    [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => DTDP * (10 * Math.random())))))
+    [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => 0))))
 
-const swap = 0
+let swap = 0
 
 class Particle {
   constructor () {
@@ -32,10 +35,10 @@ class Particle {
   }
 
   update () {
-    const dtdp = space[swap][Math.trunc(this.p[X] / GRANULARITY)][Math.trunc(this.p[Y] / GRANULARITY)]
+    const force = space[swap][Math.trunc(this.p[X] / GRANULARITY)][Math.trunc(this.p[Y] / GRANULARITY)]
     for (const i in D) {
-      const delta = this.v[i] * dtdp[i]
-      this.p[i] += delta
+      this.v[i] += DT * force[i] / MASS
+      this.p[i] += this.v[i] * DT
     }
   }
 
@@ -46,9 +49,26 @@ class Particle {
       while (this.p[i] > SIZE[i]) this.p[i] -= SIZE[i]
     }
   }
-}
 
-const N = 100
+  updateSpace () {
+    const p = [...D].map(_ => undefined)
+    const delta = [...D].map(_ => undefined)
+    for (const i in space[swap]) {
+      p[X] = i * GRANULARITY + GRANULARITY / 2
+      delta[X] = p[X] - this.p[X]
+      const column = space[swap][i]
+      for (const j in column) {
+        p[Y] = j * GRANULARITY + GRANULARITY / 2
+        delta[Y] = p[Y] - this.p[Y]
+        const r2 = delta[X] ** 2 + delta[Y] ** 2
+        const force = column[j]
+        for (const k in force) {
+          force[k] += -delta[k] * G / r2
+        }
+      }
+    }
+  }
+}
 
 const particles = [...Array(N)].map(_ => new Particle())
 
@@ -60,6 +80,17 @@ function draw () {
   }
   for (const particle of particles) {
     particle.tick()
+  }
+  swap = 1 - swap
+  for (const column of space[swap]) {
+    for (const force of column) {
+      for (const i in force) {
+        force[i] = 0
+      }
+    }
+  }
+  for (const particle of particles) {
+    particle.updateSpace()
   }
 }
 
