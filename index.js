@@ -10,12 +10,12 @@ const D = [X, Y]
 const SIZE = [...D].map(_ => 500)
 const SPEED = 10
 
-const DTDP = 0.5
+const DTDP = 0.1
 
-const GRANULARITY = 10
+const GRANULARITY = 100
 const space = [...Array(2)].map(_ =>
   [...Array(SIZE[X] / GRANULARITY)].map(_ =>
-    [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => DTDP * (1 + Math.random())))))
+    [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => DTDP * (10 * Math.random())))))
 
 const swap = 0
 
@@ -27,7 +27,7 @@ class Particle {
 
   draw () {
     ctx.beginPath()
-    ctx.arc(this.p[X], this.p[Y], 10, 0, 2 * Math.PI)
+    ctx.arc(this.p[X], this.p[Y], 3, 0, 2 * Math.PI)
     ctx.stroke()
   }
 
@@ -48,7 +48,7 @@ class Particle {
   }
 }
 
-const N = 10
+const N = 100
 
 const particles = [...Array(N)].map(_ => new Particle())
 
