@@ -7,15 +7,15 @@ const X = 0
 const Y = 1
 const D = [X, Y]
 
-const DT = 0.1
+const DT = 0.01
 const MASS = 1
 const SIZE = [...D].map(_ => 500)
 const SPEED = 0
 
-const G = 10
+const G = 1
 
-const N = 10
-const GRANULARITY = 10
+const N = 1000
+const GRANULARITY = 20
 const space = [...Array(2)].map(_ =>
   [...Array(SIZE[X] / GRANULARITY)].map(_ =>
     [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => 0))))
@@ -30,7 +30,7 @@ class Particle {
 
   draw () {
     ctx.beginPath()
-    ctx.arc(this.p[X], this.p[Y], 3, 0, 2 * Math.PI)
+    ctx.arc(this.p[X], this.p[Y], 1, 0, 2 * Math.PI)
     ctx.stroke()
   }
 
