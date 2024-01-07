@@ -12,10 +12,10 @@ const MASS = 1
 const SIZE = [...D].map(_ => 500)
 const SPEED = 0
 
-const G = 1
+const G = 100
 
-const N = 1000
-const GRANULARITY = 20
+const N = 100
+const GRANULARITY = 10
 const space = [...Array(2)].map(_ =>
   [...Array(SIZE[X] / GRANULARITY)].map(_ =>
     [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => 0))))
@@ -26,18 +26,19 @@ class Particle {
   constructor () {
     this.p = [...D].map((_, i) => Math.random() * SIZE[i])
     this.v = [...D].map((_, i) => SPEED * (Math.random() - 0.5))
+    this.m = MASS / (1000 * Math.random())
   }
 
   draw () {
     ctx.beginPath()
-    ctx.arc(this.p[X], this.p[Y], 1, 0, 2 * Math.PI)
+    ctx.arc(this.p[X], this.p[Y], Math.sqrt(this.m) * 10, 0, 2 * Math.PI)
     ctx.stroke()
   }
 
   update () {
     const force = space[swap][Math.trunc(this.p[X] / GRANULARITY)][Math.trunc(this.p[Y] / GRANULARITY)]
     for (const i in D) {
-      this.v[i] += DT * force[i] / MASS
+      this.v[i] += DT * force[i]
       this.p[i] += this.v[i] * DT
     }
   }
@@ -56,14 +57,16 @@ class Particle {
     for (const i in space[swap]) {
       p[X] = i * GRANULARITY + GRANULARITY / 2
       delta[X] = p[X] - this.p[X]
+      const dx2 = delta[X] * delta[X]
       const column = space[swap][i]
       for (const j in column) {
         p[Y] = j * GRANULARITY + GRANULARITY / 2
         delta[Y] = p[Y] - this.p[Y]
-        const r2 = delta[X] ** 2 + delta[Y] ** 2
+        const dy2 = delta[Y] * delta[Y]
+        const r2 = dx2 + dy2
         const force = column[j]
         for (const k in force) {
-          force[k] += -delta[k] * G / r2
+          force[k] += -delta[k] * this.m * G / r2
         }
       }
     }
@@ -72,6 +75,9 @@ class Particle {
 
 const particles = [...Array(N)].map(_ => new Particle())
 
+const FRAME_CHECK = 50
+let frame = 0
+let lastMs = Date.now()
 function draw () {
   ctx.globalCompositeOperation = 'destination-over'
   ctx.clearRect(0, 0, SIZE[X], SIZE[Y])
@@ -92,6 +98,13 @@ function draw () {
   for (const particle of particles) {
     particle.updateSpace()
   }
+  if (frame % FRAME_CHECK === 0) {
+    const currentMs = Date.now()
+    const frameDurationS = (currentMs - lastMs) / (1000.0 * FRAME_CHECK)
+    console.log('fps=', 1 / frameDurationS)
+    lastMs = currentMs
+  }
+  ++frame
 }
 
 // window.requestAnimationFrame(draw)
