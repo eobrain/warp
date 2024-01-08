@@ -16,17 +16,22 @@ const G = 10000
 
 const N = 200
 
+const DENSITY = 0.01
+
+const radius = mass => Math.sqrt(mass / DENSITY)
+
 class Particle {
   constructor () {
     this.p = [...D].map((_, i) => Math.random() * SIZE[i])
     this.v = [...D].map((_, i) => SPEED * (Math.random() - 0.5))
     this.m = MASS / (1000 * Math.random())
     this.acceleration = [...D].map(_ => 0)
+    this.radius = radius(this.m)
   }
 
   draw () {
     ctx.beginPath()
-    ctx.arc(this.p[X], this.p[Y], Math.sqrt(this.m) * 10, 0, 2 * Math.PI)
+    ctx.arc(this.p[X], this.p[Y], this.radius, 0, 2 * Math.PI)
     ctx.stroke()
   }
 
