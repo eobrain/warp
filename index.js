@@ -5,7 +5,8 @@ const ctx = $canvas.getContext('2d')
 // Dimensions
 const X = 0
 const Y = 1
-const D = [X, Y]
+const Z = 2
+const D = [X, Y, Z]
 
 const DT = 0.005
 const MASS = 0.005
