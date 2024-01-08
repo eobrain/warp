@@ -7,16 +7,16 @@ const X = 0
 const Y = 1
 const D = [X, Y]
 
-const DT = 0.01
-const MASS = 1
+const DT = 0.005
+const MASS = 0.005
 const SIZE = [...D].map(_ => 500)
 const SPEED = 0
 
-const G = 10000
+const G = 100000
 
-const N = 200
+const N = 500
 
-const DENSITY = 0.01
+const DENSITY = 0.1
 
 const radius = mass => Math.sqrt(mass / DENSITY)
 
@@ -24,7 +24,7 @@ class Particle {
   constructor () {
     this.p = [...D].map((_, i) => Math.random() * SIZE[i])
     this.v = [...D].map((_, i) => SPEED * (Math.random() - 0.5))
-    this.m = MASS / (1000 * Math.random())
+    this.m = MASS // (1000 * Math.random())
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
   }
@@ -40,6 +40,17 @@ class Particle {
     const r = Math.sqrt(dp.reduce(
       (acc, curr) => acc + curr * curr,
       0))
+    if (r < this.radius + other.radius) {
+      // collided
+      this.deleted = true
+      for (const i in D) {
+        other.v[i] = (other.m * other.v[i] + this.m * this.v[i]) / (other.m + this.m)
+        other.p[i] = (other.m * other.p[i] + this.m * this.p[i]) / (other.m + this.m)
+      }
+      other.m += this.m
+      other.radius = radius(other.m)
+      return
+    }
     for (const i in D) {
       this.acceleration[i] += -dp[i] * other.m * G / (r * r * r)
     }
@@ -50,8 +61,11 @@ class Particle {
       this.acceleration[i] = 0
     }
     for (const other of particles) {
-      if (other !== this) {
+      if (other !== this && !other.deleted) {
         this.updateAcceleration(other)
+        if (this.deleted) {
+          return
+        }
       }
     }
     for (const i in D) {
@@ -62,16 +76,16 @@ class Particle {
 
   tick () {
     this.update()
-    /* for (const i in D) {
+    for (const i in D) {
       while (this.p[i] < 0) this.p[i] += SIZE[i]
       while (this.p[i] > SIZE[i]) this.p[i] -= SIZE[i]
-    } */
+    }
   }
 }
 
-const particles = [...Array(N)].map(_ => new Particle())
+let particles = [...Array(N)].map(_ => new Particle())
 
-const FRAME_CHECK = 50
+const FRAME_CHECK = 250
 let frame = 0
 let lastMs = Date.now()
 function draw () {
@@ -83,14 +97,15 @@ function draw () {
   for (const particle of particles) {
     particle.tick()
   }
+  particles = particles.filter(particle => !particle.deleted)
+  ++frame
   if (frame % FRAME_CHECK === 0) {
     const currentMs = Date.now()
     const frameDurationS = (currentMs - lastMs) / (1000.0 * FRAME_CHECK)
     console.log('fps=', 1 / frameDurationS)
     lastMs = currentMs
   }
-  ++frame
 }
 
 // window.requestAnimationFrame(draw)
-setInterval(draw, 1000 / 50)
+setInterval(draw, 1000 / FRAME_CHECK)
