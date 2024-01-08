@@ -12,21 +12,16 @@ const MASS = 1
 const SIZE = [...D].map(_ => 500)
 const SPEED = 0
 
-const G = 100
+const G = 10000
 
-const N = 100
-const GRANULARITY = 10
-const space = [...Array(2)].map(_ =>
-  [...Array(SIZE[X] / GRANULARITY)].map(_ =>
-    [...Array(SIZE[Y] / GRANULARITY)].map(_ => [...D].map(_ => 0))))
-
-let swap = 0
+const N = 200
 
 class Particle {
   constructor () {
     this.p = [...D].map((_, i) => Math.random() * SIZE[i])
     this.v = [...D].map((_, i) => SPEED * (Math.random() - 0.5))
     this.m = MASS / (1000 * Math.random())
+    this.acceleration = [...D].map(_ => 0)
   }
 
   draw () {
@@ -35,41 +30,37 @@ class Particle {
     ctx.stroke()
   }
 
-  update () {
-    const force = space[swap][Math.trunc(this.p[X] / GRANULARITY)][Math.trunc(this.p[Y] / GRANULARITY)]
+  updateAcceleration (other) {
+    const dp = [...D].map(i => this.p[i] - other.p[i])
+    const r = Math.sqrt(dp.reduce(
+      (acc, curr) => acc + curr * curr,
+      0))
     for (const i in D) {
-      this.v[i] += DT * force[i]
+      this.acceleration[i] += -dp[i] * other.m * G / (r * r * r)
+    }
+  }
+
+  update () {
+    for (const i in D) {
+      this.acceleration[i] = 0
+    }
+    for (const other of particles) {
+      if (other !== this) {
+        this.updateAcceleration(other)
+      }
+    }
+    for (const i in D) {
+      this.v[i] += DT * this.acceleration[i]
       this.p[i] += this.v[i] * DT
     }
   }
 
   tick () {
     this.update()
-    for (const i in D) {
+    /* for (const i in D) {
       while (this.p[i] < 0) this.p[i] += SIZE[i]
       while (this.p[i] > SIZE[i]) this.p[i] -= SIZE[i]
-    }
-  }
-
-  updateSpace () {
-    const p = [...D].map(_ => undefined)
-    const delta = [...D].map(_ => undefined)
-    for (const i in space[swap]) {
-      p[X] = i * GRANULARITY + GRANULARITY / 2
-      delta[X] = p[X] - this.p[X]
-      const dx2 = delta[X] * delta[X]
-      const column = space[swap][i]
-      for (const j in column) {
-        p[Y] = j * GRANULARITY + GRANULARITY / 2
-        delta[Y] = p[Y] - this.p[Y]
-        const dy2 = delta[Y] * delta[Y]
-        const r2 = dx2 + dy2
-        const force = column[j]
-        for (const k in force) {
-          force[k] += -delta[k] * this.m * G / r2
-        }
-      }
-    }
+    } */
   }
 }
 
@@ -86,17 +77,6 @@ function draw () {
   }
   for (const particle of particles) {
     particle.tick()
-  }
-  swap = 1 - swap
-  for (const column of space[swap]) {
-    for (const force of column) {
-      for (const i in force) {
-        force[i] = 0
-      }
-    }
-  }
-  for (const particle of particles) {
-    particle.updateSpace()
   }
   if (frame % FRAME_CHECK === 0) {
     const currentMs = Date.now()
