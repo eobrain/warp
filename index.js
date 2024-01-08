@@ -7,23 +7,26 @@ const X = 0
 const Y = 1
 const D = [X, Y]
 
-const DT = 0.005
-const MASS = 0.005
+const DT = 0.01
+const MASS = 0.01
 const SIZE = [...D].map(_ => 500)
-const SPEED = 0
+const SPEED = 0.001
 
 const G = 100000
 
 const N = 500
 
-const DENSITY = 0.1
+const DENSITY = 0.2
 
 const radius = mass => Math.sqrt(mass / DENSITY)
 
 class Particle {
   constructor () {
-    this.p = [...D].map((_, i) => Math.random() * SIZE[i])
-    this.v = [...D].map((_, i) => SPEED * (Math.random() - 0.5))
+    this.p = [...D].map((_, i) => SIZE[i] / 8 + Math.random() * 3 * SIZE[i] / 4)
+    const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
+    const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
+    this.v = [...D].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
+    this.v[0] *= -1
     this.m = MASS // (1000 * Math.random())
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
