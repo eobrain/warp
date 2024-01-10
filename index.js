@@ -5,34 +5,50 @@ const ctx = $canvas.getContext('2d')
 // Dimensions
 const X = 0
 const Y = 1
-const D = [X, Y]
+const Z = 2
+const D = [X, Y, Z]
+const D2 = [X, Y]
 
 const DT = 0.01
-const MASS = 0.01
+const MASS = 0.05
 const SIZE = [...D].map(_ => 500)
 const SPEED = 0.001
 
 const G = 100000
 
-const N = 500
+const N = 200
 
-const DENSITY = 0.2
+const DENSITY = 0.02
 
 const radius = mass => Math.sqrt(mass / DENSITY)
+
+let maxVz = Number.MIN_VALUE
+let minVz = Number.MAX_VALUE
 
 class Particle {
   constructor () {
     this.p = [...D].map((_, i) => SIZE[i] / 8 + Math.random() * 3 * SIZE[i] / 4)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
-    this.v = [...D].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
-    this.v[0] *= -1
+    this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
+    this.v[X] *= -1
+    this.v[Z] = 0
     this.m = MASS // (1000 * Math.random())
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
   }
 
   draw () {
+    let red = 0
+    let blue = 0
+    const green = 0
+    if (this.v[Z] > 0) {
+      red = Math.trunc(255 * this.v[Z] / maxVz)
+    } else if (this.v[Z] < 0) {
+      blue = Math.trunc(255 * this.v[Z] / minVz)
+    }
+
+    ctx.strokeStyle = `rgb(${red} ${green} ${blue})`
     ctx.beginPath()
     ctx.arc(this.p[X], this.p[Y], this.radius, 0, 2 * Math.PI)
     ctx.stroke()
@@ -75,6 +91,8 @@ class Particle {
       this.v[i] += DT * this.acceleration[i]
       this.p[i] += this.v[i] * DT
     }
+    minVz = Math.max(minVz, this.v[Z])
+    maxVz = Math.max(maxVz, this.v[Z])
   }
 
   tick () {
