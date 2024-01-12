@@ -12,11 +12,13 @@ const D2 = [X, Y]
 const DT = 0.01
 const MASS = 0.02
 const SIZE = [...D].map(_ => 500)
-const SPEED = 0.002
+const SPEED = 0.0015
 
 const G = 100000
 
 const N = 200
+
+const TOTAL_MASS = MASS * N
 
 const DENSITY = 0.02
 
@@ -78,7 +80,7 @@ class Particle {
     }
   }
 
-  update () {
+  update (mps, mvs) {
     for (const i in D) {
       this.acceleration[i] = 0
     }
@@ -93,17 +95,22 @@ class Particle {
     for (const i in D) {
       this.v[i] += DT * this.acceleration[i]
       this.p[i] += this.v[i] * DT
+      mps[i] += this.p[i] * this.m
+      mvs[i] += this.v[i] * this.m
+      if (Math.abs(this.p[i] > 100 * SIZE[i])) {
+        this.deleted = true
+      }
     }
     minVz = Math.min(minVz, this.v[Z])
     maxVz = Math.max(maxVz, this.v[Z])
   }
 
-  tick () {
-    this.update()
-    for (const i in D) {
+  tick (mps, mvs) {
+    this.update(mps, mvs)
+    /* for (const i in D) {
       while (this.p[i] < 0) this.p[i] += SIZE[i]
       while (this.p[i] > SIZE[i]) this.p[i] -= SIZE[i]
-    }
+    } */
   }
 }
 
@@ -118,9 +125,23 @@ function draw () {
   for (const particle of particles) {
     particle.draw()
   }
+  const mps = D.map(_ => 0)
+  const mvs = D.map(_ => 0)
   for (const particle of particles) {
-    particle.tick()
+    particle.tick(mps, mvs)
   }
+  for (const i in D) {
+    const centerOfGravity = mps[i] / TOTAL_MASS
+    const meanVelocity = mvs[i] / TOTAL_MASS
+    const offset = centerOfGravity - SIZE[i] / 2
+    if (Math.abs(offset) > SIZE[i] / 4) {
+      for (const particle of particles) {
+        particle.p[i] -= offset
+        particle.v[i] -= meanVelocity
+      }
+    }
+  }
+
   particles = particles.filter(particle => !particle.deleted)
   particles.sort((a, b) => a.p[Z] - b.p[Z])
   ++frame
