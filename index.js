@@ -10,15 +10,15 @@ const D = [X, Y, Z]
 const D2 = [X, Y]
 
 const DT = 0.01
-const MASS = 0.05
+const MASS = 0.02
 const SIZE = [...D].map(_ => 500)
-const SPEED = 0.001
+const SPEED = 0.002
 
 const G = 100000
 
 const N = 200
 
-const DENSITY = 0.02
+const DENSITY = 0.02git comm
 
 const radius = mass => Math.sqrt(mass / DENSITY)
 
@@ -27,7 +27,7 @@ let minVz = Number.MAX_VALUE
 
 class Particle {
   constructor () {
-    this.p = [...D].map((_, i) => SIZE[i] / 8 + Math.random() * 3 * SIZE[i] / 4)
+    this.p = [...D].map((_, i) => SIZE[i] / 4 + Math.random() * SIZE[i] / 2)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
     this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
@@ -39,19 +39,21 @@ class Particle {
   }
 
   draw () {
-    let red = 0
-    let blue = 0
-    const green = 0
+    let hue = 0
+    let saturation = 0
     if (this.v[Z] > 0) {
-      red = Math.trunc(255 * this.v[Z] / maxVz)
+      hue = 0 // red
+      saturation = Math.trunc(100 * this.v[Z] / maxVz)
     } else if (this.v[Z] < 0) {
-      blue = Math.trunc(255 * this.v[Z] / minVz)
+      hue = 240 // blue
+      saturation = Math.trunc(100 * this.v[Z] / minVz)
     }
+    const lightness = Math.trunc(this.p[Z] * 100 / SIZE[Z])
 
-    ctx.strokeStyle = `rgb(${red} ${green} ${blue})`
+    ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
     ctx.beginPath()
     ctx.arc(this.p[X], this.p[Y], this.radius, 0, 2 * Math.PI)
-    ctx.stroke()
+    ctx.fill()
   }
 
   updateAcceleration (other) {
@@ -91,7 +93,7 @@ class Particle {
       this.v[i] += DT * this.acceleration[i]
       this.p[i] += this.v[i] * DT
     }
-    minVz = Math.max(minVz, this.v[Z])
+    minVz = Math.min(minVz, this.v[Z])
     maxVz = Math.max(maxVz, this.v[Z])
   }
 
@@ -119,6 +121,7 @@ function draw () {
     particle.tick()
   }
   particles = particles.filter(particle => !particle.deleted)
+  particles.sort((a, b) => a.p[Z] - b.p[Z])
   ++frame
   if (frame % FRAME_CHECK === 0) {
     const currentMs = Date.now()
