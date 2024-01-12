@@ -18,7 +18,7 @@ const G = 100000
 
 const N = 200
 
-const DENSITY = 0.02git comm
+const DENSITY = 0.02
 
 const radius = mass => Math.sqrt(mass / DENSITY)
 
