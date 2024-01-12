@@ -53,6 +53,7 @@ class Particle {
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
     ctx.beginPath()
     ctx.arc(this.p[X], this.p[Y], this.radius, 0, 2 * Math.PI)
+    ctx.arc(this.p[X] - DT * this.v[X], this.p[Y] - DT * this.v[Y], this.radius, 0, 2 * Math.PI)
     ctx.fill()
   }
 
