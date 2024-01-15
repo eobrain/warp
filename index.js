@@ -52,7 +52,7 @@ class Particle {
       hue = 240 // blue
       saturation = Math.trunc(100 * this.v[Z] / minVz)
     }
-    const lightness = Math.trunc(this.p[Z] * 100 / SIZE[Z])
+    const lightness = 50 + Math.trunc(this.p[Z] * 50 / SIZE[Z])
 
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
     ctx.beginPath()
@@ -122,8 +122,9 @@ const FRAME_CHECK = 250
 let frame = 0
 let lastMs = Date.now()
 function draw () {
-  ctx.globalCompositeOperation = 'destination-over'
-  ctx.clearRect(0, 0, SIZE[X], SIZE[Y])
+  // ctx.globalCompositeOperation = 'destination-over'
+  ctx.fillStyle = 'black'
+  ctx.fillRect(0, 0, SIZE[X], SIZE[Y])
   for (const particle of particles) {
     particle.draw()
   }
