@@ -1,5 +1,7 @@
 /* global $canvas */
 
+import { Perspective } from './view.js'
+
 const ctx = $canvas.getContext('2d')
 
 // All units are SI (meters, kilograms, etc.) unless suffix added
@@ -25,8 +27,8 @@ const DT = 10 * MINUTE
 const MASS = 10 * SUN_MASS / N
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 const SIZE = [...D].map(_ => AU)
-const SCALE_M_PER_PIXEL = SIZE[0] / VIEWPORT_SIZE[0]
 const SPEED = EARTH_ORBIT_SPEED * 60
+const TOTAL_MASS = MASS * N
 
 const G = 6.6743015e-11
 
@@ -36,6 +38,10 @@ const radius = mass => (mass / DENSITY) ** (1.0 / 3.0)
 
 let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
+
+const view = new Perspective(SIZE[0] / VIEWPORT_SIZE[0], SIZE)
+
+const FRAME_COLOR = 'green'
 
 class Particle {
   constructor () {
@@ -62,22 +68,31 @@ class Particle {
       hue = 240 // blue
       saturation = Math.trunc(100 * this.v[Z] / minVz)
     }
-    const lightness = 50 + Math.trunc(this.p[Z] * 50 / SIZE[Z])
+    const lightness = 100 - Math.trunc(this.p[Z] * 50 / SIZE[Z])
 
-    const radiusPixels = this.radius / SCALE_M_PER_PIXEL
+    const rPix = view.transformSize(this.radius, this.p[Z])
+    const [xPix, yPix] = view.transform(...this.p)
 
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
+
+    const [, yBasePix] = view.transform(this.p[X], SIZE[Y], this.p[Z])
+    ctx.strokeStyle = `rgba(100%, 100%, 100%, ${100 * this.m / TOTAL_MASS}%)`
+    ctx.beginPath()
+    ctx.moveTo(xPix, yPix)
+    ctx.lineTo(xPix, yBasePix)
+    ctx.stroke()
+
     ctx.beginPath()
     ctx.arc(
-      this.p[X] / SCALE_M_PER_PIXEL,
-      this.p[Y] / SCALE_M_PER_PIXEL,
-      radiusPixels,
+      xPix,
+      yPix,
+      rPix,
       0, 2 * Math.PI)
-    ctx.arc(
+    /* ctx.arc(
       (this.p[X] - DT * this.v[X]) / SCALE_M_PER_PIXEL,
       (this.p[Y] - DT * this.v[Y]) / SCALE_M_PER_PIXEL,
-      radiusPixels,
-      0, 2 * Math.PI)
+      rPix,
+      0, 2 * Math.PI) */
     ctx.fill()
   }
 
@@ -139,12 +154,42 @@ class Particle {
 
 let particles = [...Array(N)].map(_ => new Particle())
 
+const FRAME_PATH = [
+  [0, 0, 0],
+  [0, 0, 1],
+  [0, 1, 1],
+  [0, 1, 0],
+  [0, 1, 1],
+  [1, 1, 1],
+  [1, 1, 0],
+  [1, 1, 1],
+  [1, 0, 1],
+  [1, 0, 0],
+  [1, 0, 1],
+  [0, 0, 1]
+].map(pu => pu.map((u, i) => u * SIZE[i]))
+
+function drawFrame () {
+  ctx.strokeStyle = FRAME_COLOR
+  ctx.beginPath()
+  for (let i = 0; i < FRAME_PATH.length; ++i) {
+    const [xPix, yPix] = view.transform(...FRAME_PATH[i])
+    if (i === 0) {
+      ctx.moveTo(xPix, yPix)
+    } else {
+      ctx.lineTo(xPix, yPix)
+    }
+  }
+  ctx.stroke()
+}
+
 const FRAME_CHECK = 250
 let frame = 0
 let lastMs = Date.now()
 function draw () {
   ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, SIZE[X], SIZE[Y])
+  drawFrame()
   for (const particle of particles) {
     particle.draw()
   }
