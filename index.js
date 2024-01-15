@@ -2,6 +2,16 @@
 
 const ctx = $canvas.getContext('2d')
 
+// All units are SI (meters, kilograms, etc.) unless suffix added
+
+const SUN_MASS = 1.9891e30
+const AU = 149597870700 // distance from Earth to Sun
+const MINUTE = 60
+const HOUR = MINUTE * 60
+const DAY = HOUR * 24
+const YEAR = DAY * 365.24
+const EARTH_ORBIT_SPEED = 2 * Math.PI * AU / YEAR
+
 // Dimensions
 const X = 0
 const Y = 1
@@ -9,18 +19,20 @@ const Z = 2
 const D = [X, Y, Z]
 const D2 = [X, Y]
 
-const DT = 0.01
-const MASS = 0.02
-const SIZE = [...D].map(_ => 500)
-const SPEED = 0.0015
-
-const G = 100000
-
 const N = 200
 
-const DENSITY = 0.02
+const DT = 10 * MINUTE
+const MASS = 10 * SUN_MASS / N
+const VIEWPORT_SIZE = [...D].map(_ => 500)
+const SIZE = [...D].map(_ => AU)
+const SCALE_M_PER_PIXEL = SIZE[0] / VIEWPORT_SIZE[0]
+const SPEED = EARTH_ORBIT_SPEED * 50
 
-const radius = mass => Math.sqrt(mass / DENSITY)
+const G = 6.6743015e-11
+
+const DENSITY = 1000 // Kg m^-3
+
+const radius = mass => (mass / DENSITY) ** (1.0 / 3.0)
 
 let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
@@ -30,7 +42,7 @@ class Particle {
     this.p = [...D].map((_, i) => SIZE[i] / 4 + Math.random() * SIZE[i] / 2)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
-    this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
+    this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
     this.v[X] *= -1
     this.v[Z] = 0
     this.m = MASS // (1000 * Math.random())
@@ -52,10 +64,20 @@ class Particle {
     }
     const lightness = 50 + Math.trunc(this.p[Z] * 50 / SIZE[Z])
 
+    const radius_pixels = this.radius / SCALE_M_PER_PIXEL
+
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
     ctx.beginPath()
-    ctx.arc(this.p[X], this.p[Y], this.radius, 0, 2 * Math.PI)
-    ctx.arc(this.p[X] - DT * this.v[X], this.p[Y] - DT * this.v[Y], this.radius, 0, 2 * Math.PI)
+    ctx.arc(
+      this.p[X] / SCALE_M_PER_PIXEL,
+      this.p[Y] / SCALE_M_PER_PIXEL,
+      radius_pixels,
+      0, 2 * Math.PI)
+    ctx.arc(
+      (this.p[X] - DT * this.v[X]) / SCALE_M_PER_PIXEL,
+      (this.p[Y] - DT * this.v[Y]) / SCALE_M_PER_PIXEL,
+      radius_pixels,
+      0, 2 * Math.PI)
     ctx.fill()
   }
 
