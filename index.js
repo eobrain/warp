@@ -28,6 +28,7 @@ const MASS = 10 * SUN_MASS / N
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 const SIZE = [...D].map(_ => AU)
 const SPEED = EARTH_ORBIT_SPEED * 60
+const TOTAL_MASS = MASS * N
 
 const G = 6.6743015e-11
 
@@ -39,6 +40,8 @@ let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
 
 const view = new Perspective(SIZE[0] / VIEWPORT_SIZE[0], SIZE)
+
+const FRAME_COLOR = 'green'
 
 class Particle {
   constructor () {
@@ -65,11 +68,20 @@ class Particle {
       hue = 240 // blue
       saturation = Math.trunc(100 * this.v[Z] / minVz)
     }
-    const lightness = 50 + Math.trunc(this.p[Z] * 50 / SIZE[Z])
+    const lightness = 100 - Math.trunc(this.p[Z] * 50 / SIZE[Z])
 
     const rPix = view.transformSize(this.radius, this.p[Z])
     const [xPix, yPix] = view.transform(...this.p)
+
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
+
+    const [, yBasePix] = view.transform(this.p[X], SIZE[Y], this.p[Z])
+    ctx.strokeStyle = `rgba(100%, 100%, 100%, ${100 * this.m / TOTAL_MASS}%)`
+    ctx.beginPath()
+    ctx.moveTo(xPix, yPix)
+    ctx.lineTo(xPix, yBasePix)
+    ctx.stroke()
+
     ctx.beginPath()
     ctx.arc(
       xPix,
@@ -158,7 +170,7 @@ const FRAME_PATH = [
 ].map(pu => pu.map((u, i) => u * SIZE[i]))
 
 function drawFrame () {
-  ctx.strokeStyle = 'green'
+  ctx.strokeStyle = FRAME_COLOR
   ctx.beginPath()
   for (let i = 0; i < FRAME_PATH.length; ++i) {
     const [xPix, yPix] = view.transform(...FRAME_PATH[i])
@@ -168,7 +180,7 @@ function drawFrame () {
       ctx.lineTo(xPix, yPix)
     }
   }
-  ctx.stroke() // Render the path
+  ctx.stroke()
 }
 
 const FRAME_CHECK = 250
