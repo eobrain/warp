@@ -38,6 +38,8 @@ class Particle {
     this.m = MASS // (1000 * Math.random())
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
+    this.nextP = [...D]
+    this.nextV = [...D]
   }
 
   draw () {
@@ -93,11 +95,11 @@ class Particle {
       }
     }
     for (const i in D) {
-      this.v[i] += DT * this.acceleration[i]
-      this.p[i] += this.v[i] * DT
-      mps[i] += this.p[i] * this.m
-      mvs[i] += this.v[i] * this.m
-      if (Math.abs(this.p[i] > 100 * SIZE[i])) {
+      this.nextV[i] = this.v[i] + DT * this.acceleration[i]
+      this.nextP[i] = this.p[i] + this.nextV[i] * DT
+      mps[i] += this.nextP[i] * this.m
+      mvs[i] += this.nextV[i] * this.m
+      if (Math.abs(this.p[i] > 10 * SIZE[i])) {
         this.deleted = true
       }
     }
@@ -131,6 +133,10 @@ function draw () {
     particle.tick(mps, mvs)
   }
   for (const i in D) {
+    for (const particle of particles) {
+      particle.p[i] = particle.nextP[i]
+      particle.v[i] = particle.nextV[i]
+    }
     const centerOfGravity = mps[i] / TOTAL_MASS
     const meanVelocity = mvs[i] / TOTAL_MASS
     const offset = centerOfGravity - SIZE[i] / 2
