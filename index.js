@@ -5,37 +5,60 @@ const ctx = $canvas.getContext('2d')
 // Dimensions
 const X = 0
 const Y = 1
-const D = [X, Y]
+const Z = 2
+const D = [X, Y, Z]
+const D2 = [X, Y]
 
 const DT = 0.01
-const MASS = 0.01
+const MASS = 0.02
 const SIZE = [...D].map(_ => 500)
-const SPEED = 0.001
+const SPEED = 0.0015
 
 const G = 100000
 
-const N = 500
+const N = 200
 
-const DENSITY = 0.2
+const TOTAL_MASS = MASS * N
+
+const DENSITY = 0.02
 
 const radius = mass => Math.sqrt(mass / DENSITY)
 
+let maxVz = Number.MIN_VALUE
+let minVz = Number.MAX_VALUE
+
 class Particle {
   constructor () {
-    this.p = [...D].map((_, i) => SIZE[i] / 8 + Math.random() * 3 * SIZE[i] / 4)
+    this.p = [...D].map((_, i) => SIZE[i] / 4 + Math.random() * SIZE[i] / 2)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
-    this.v = [...D].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
-    this.v[0] *= -1
+    this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i])
+    this.v[X] *= -1
+    this.v[Z] = 0
     this.m = MASS // (1000 * Math.random())
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
+    this.nextP = [...D]
+    this.nextV = [...D]
   }
 
   draw () {
+    let hue = 0
+    let saturation = 0
+    if (this.v[Z] > 0) {
+      hue = 0 // red
+      saturation = Math.trunc(100 * this.v[Z] / maxVz)
+    } else if (this.v[Z] < 0) {
+      hue = 240 // blue
+      saturation = Math.trunc(100 * this.v[Z] / minVz)
+    }
+    const lightness = Math.trunc(this.p[Z] * 100 / SIZE[Z])
+
+    ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
     ctx.beginPath()
     ctx.arc(this.p[X], this.p[Y], this.radius, 0, 2 * Math.PI)
-    ctx.stroke()
+    ctx.arc(this.p[X] - DT * this.v[X], this.p[Y] - DT * this.v[Y], this.radius, 0, 2 * Math.PI)
+    ctx.fill()
   }
 
   updateAcceleration (other) {
@@ -59,7 +82,7 @@ class Particle {
     }
   }
 
-  update () {
+  update (mps, mvs) {
     for (const i in D) {
       this.acceleration[i] = 0
     }
@@ -72,17 +95,24 @@ class Particle {
       }
     }
     for (const i in D) {
-      this.v[i] += DT * this.acceleration[i]
-      this.p[i] += this.v[i] * DT
+      this.nextV[i] = this.v[i] + DT * this.acceleration[i]
+      this.nextP[i] = this.p[i] + this.nextV[i] * DT
+      mps[i] += this.nextP[i] * this.m
+      mvs[i] += this.nextV[i] * this.m
+      if (Math.abs(this.p[i] > 10 * SIZE[i])) {
+        this.deleted = true
+      }
     }
+    minVz = Math.min(minVz, this.v[Z])
+    maxVz = Math.max(maxVz, this.v[Z])
   }
 
-  tick () {
-    this.update()
-    for (const i in D) {
+  tick (mps, mvs) {
+    this.update(mps, mvs)
+    /* for (const i in D) {
       while (this.p[i] < 0) this.p[i] += SIZE[i]
       while (this.p[i] > SIZE[i]) this.p[i] -= SIZE[i]
-    }
+    } */
   }
 }
 
@@ -97,10 +127,29 @@ function draw () {
   for (const particle of particles) {
     particle.draw()
   }
+  const mps = D.map(_ => 0)
+  const mvs = D.map(_ => 0)
   for (const particle of particles) {
-    particle.tick()
+    particle.tick(mps, mvs)
   }
+  for (const i in D) {
+    for (const particle of particles) {
+      particle.p[i] = particle.nextP[i]
+      particle.v[i] = particle.nextV[i]
+    }
+    const centerOfGravity = mps[i] / TOTAL_MASS
+    const meanVelocity = mvs[i] / TOTAL_MASS
+    const offset = centerOfGravity - SIZE[i] / 2
+    if (Math.abs(offset) > SIZE[i] / 4) {
+      for (const particle of particles) {
+        particle.p[i] -= offset
+        particle.v[i] -= meanVelocity
+      }
+    }
+  }
+
   particles = particles.filter(particle => !particle.deleted)
+  particles.sort((a, b) => a.p[Z] - b.p[Z])
   ++frame
   if (frame % FRAME_CHECK === 0) {
     const currentMs = Date.now()
