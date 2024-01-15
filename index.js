@@ -19,14 +19,14 @@ const Z = 2
 const D = [X, Y, Z]
 const D2 = [X, Y]
 
-const N = 200
+const N = 100
 
 const DT = 10 * MINUTE
 const MASS = 10 * SUN_MASS / N
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 const SIZE = [...D].map(_ => AU)
 const SCALE_M_PER_PIXEL = SIZE[0] / VIEWPORT_SIZE[0]
-const SPEED = EARTH_ORBIT_SPEED * 50
+const SPEED = EARTH_ORBIT_SPEED * 60
 
 const G = 6.6743015e-11
 
@@ -64,19 +64,19 @@ class Particle {
     }
     const lightness = 50 + Math.trunc(this.p[Z] * 50 / SIZE[Z])
 
-    const radius_pixels = this.radius / SCALE_M_PER_PIXEL
+    const radiusPixels = this.radius / SCALE_M_PER_PIXEL
 
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
     ctx.beginPath()
     ctx.arc(
       this.p[X] / SCALE_M_PER_PIXEL,
       this.p[Y] / SCALE_M_PER_PIXEL,
-      radius_pixels,
+      radiusPixels,
       0, 2 * Math.PI)
     ctx.arc(
       (this.p[X] - DT * this.v[X]) / SCALE_M_PER_PIXEL,
       (this.p[Y] - DT * this.v[Y]) / SCALE_M_PER_PIXEL,
-      radius_pixels,
+      radiusPixels,
       0, 2 * Math.PI)
     ctx.fill()
   }
@@ -128,8 +128,11 @@ class Particle {
   tick () {
     this.update()
     for (const i in D) {
-      while (this.nextP[i] < 0) this.nextP[i] += SIZE[i]
-      while (this.nextP[i] > SIZE[i]) this.nextP[i] -= SIZE[i]
+      if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
+        this.nextV[i] = -this.nextV[i]
+      }
+      // while (this.nextP[i] < 0) this.nextP[i] += SIZE[i]
+      // while (this.nextP[i] > SIZE[i]) this.nextP[i] -= SIZE[i]
     }
   }
 }
