@@ -18,8 +18,6 @@ const G = 100000
 
 const N = 200
 
-const TOTAL_MASS = MASS * N
-
 const DENSITY = 0.02
 
 const radius = mass => Math.sqrt(mass / DENSITY)
@@ -82,7 +80,7 @@ class Particle {
     }
   }
 
-  update (mps, mvs) {
+  update () {
     for (const i in D) {
       this.acceleration[i] = 0
     }
@@ -97,8 +95,6 @@ class Particle {
     for (const i in D) {
       this.nextV[i] = this.v[i] + DT * this.acceleration[i]
       this.nextP[i] = this.p[i] + this.nextV[i] * DT
-      mps[i] += this.nextP[i] * this.m
-      mvs[i] += this.nextV[i] * this.m
       if (Math.abs(this.p[i] > 10 * SIZE[i])) {
         this.deleted = true
       }
@@ -107,12 +103,12 @@ class Particle {
     maxVz = Math.max(maxVz, this.v[Z])
   }
 
-  tick (mps, mvs) {
-    this.update(mps, mvs)
-    /* for (const i in D) {
-      while (this.p[i] < 0) this.p[i] += SIZE[i]
-      while (this.p[i] > SIZE[i]) this.p[i] -= SIZE[i]
-    } */
+  tick () {
+    this.update()
+    for (const i in D) {
+      while (this.nextP[i] < 0) this.nextP[i] += SIZE[i]
+      while (this.nextP[i] > SIZE[i]) this.nextP[i] -= SIZE[i]
+    }
   }
 }
 
@@ -122,30 +118,18 @@ const FRAME_CHECK = 250
 let frame = 0
 let lastMs = Date.now()
 function draw () {
-  // ctx.globalCompositeOperation = 'destination-over'
   ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, SIZE[X], SIZE[Y])
   for (const particle of particles) {
     particle.draw()
   }
-  const mps = D.map(_ => 0)
-  const mvs = D.map(_ => 0)
   for (const particle of particles) {
-    particle.tick(mps, mvs)
+    particle.tick()
   }
   for (const i in D) {
     for (const particle of particles) {
       particle.p[i] = particle.nextP[i]
       particle.v[i] = particle.nextV[i]
-    }
-    const centerOfGravity = mps[i] / TOTAL_MASS
-    const meanVelocity = mvs[i] / TOTAL_MASS
-    const offset = centerOfGravity - SIZE[i] / 2
-    if (Math.abs(offset) > SIZE[i] / 4) {
-      for (const particle of particles) {
-        particle.p[i] -= offset
-        particle.v[i] -= meanVelocity
-      }
     }
   }
 
