@@ -1,18 +1,27 @@
-/* global $canvas */
+/* global $canvas $time */
 
 import { Perspective } from './view.js'
+import { Controls } from './controls.js'
+
+const controls = new Controls()
 
 const ctx = $canvas.getContext('2d')
 
 // All units are SI (meters, kilograms, etc.) unless suffix added
 
-const SUN_MASS = 1.9891e30
+//  const SUN_MASS = 1.9891e30
+const JUPITER_MASS = 1.898e27
 const AU = 149597870700 // distance from Earth to Sun
 const MINUTE = 60
 const HOUR = MINUTE * 60
 const DAY = HOUR * 24
 const YEAR = DAY * 365.24
 const EARTH_ORBIT_SPEED = 2 * Math.PI * AU / YEAR
+
+const FRAMES_PER_SECOND = 250
+const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND
+const SPEEDUP = 250 * 600
+const DT = SECONDS_PER_FRAME * SPEEDUP
 
 // Dimensions
 const X = 0
@@ -21,14 +30,11 @@ const Z = 2
 const D = [X, Y, Z]
 const D2 = [X, Y]
 
-const N = 100
-
-const DT = 10 * MINUTE
-const MASS = 10 * SUN_MASS / N
+const initialMass = controls.jupiters * JUPITER_MASS
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 const SIZE = [...D].map(_ => AU)
 const SPEED = EARTH_ORBIT_SPEED * 60
-const TOTAL_MASS = MASS * N
+const TOTAL_MASS = initialMass * controls.n
 
 const G = 6.6743015e-11
 
@@ -51,7 +57,7 @@ class Particle {
     this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
     this.v[X] *= -1
     this.v[Z] = 0
-    this.m = MASS // (1000 * Math.random())
+    this.m = initialMass
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
     this.nextP = [...D]
@@ -152,7 +158,7 @@ class Particle {
   }
 }
 
-let particles = [...Array(N)].map(_ => new Particle())
+let particles = [...Array(controls.n)].map(_ => new Particle())
 
 const FRAME_PATH = [
   [0, 0, 0],
@@ -183,7 +189,24 @@ function drawFrame () {
   ctx.stroke()
 }
 
-const FRAME_CHECK = 250
+let time = 0
+
+function timeString (seconds) {
+  if (seconds < 120) {
+    return `${Math.round(seconds)} seconds`
+  }
+  const minutes = seconds / 60
+  if (minutes < 120) {
+    return `${Math.round(minutes)} minutes`
+  }
+  const hours = minutes / 60
+  if (hours < 48) {
+    return `${Math.round(hours)} hours`
+  }
+  const days = hours / 25
+  return `${Math.round(days)} days`
+}
+
 let frame = 0
 let lastMs = Date.now()
 function draw () {
@@ -206,13 +229,15 @@ function draw () {
   particles = particles.filter(particle => !particle.deleted)
   particles.sort((a, b) => a.p[Z] - b.p[Z])
   ++frame
-  if (frame % FRAME_CHECK === 0) {
+  if (frame % FRAMES_PER_SECOND === 0) {
     const currentMs = Date.now()
-    const frameDurationS = (currentMs - lastMs) / (1000.0 * FRAME_CHECK)
+    const frameDurationS = (currentMs - lastMs) / (1000.0 * FRAMES_PER_SECOND)
     console.log('fps=', 1 / frameDurationS)
     lastMs = currentMs
   }
+  time += DT
+  $time.innerText = timeString(time)
 }
 
 // window.requestAnimationFrame(draw)
-setInterval(draw, 1000 / FRAME_CHECK)
+setInterval(draw, 1000 / FRAMES_PER_SECOND)

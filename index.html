@@ -5,8 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Gravity</title>
-    <!--link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" /-->
-    <!--link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.6.0.min.css" /-->
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css-1.6.0.min.css" />
     <link rel="stylesheet" type="text/css" href="readable.min.css">
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="index.js"></script>
@@ -20,13 +20,25 @@
     <!--nav>
         <a href="/">Home</a>
         <a href="https://github.com/eobrain/warp">Source</a>
-    </nav>--
-    <main> <!-- All your main content goes in here -->
-    <article>
-        <figure>
-            <canvas id="$canvas" width="500" height="500"></canvas>
-        </figure>
-    </article>
+    </nav>-->
+    <main>
+        <article>
+            <figure>
+                <canvas id="$canvas" width="500" height="500"></canvas>
+            </figure>
+            <div>
+                <form>
+                    <p id="$time"></p>
+                    <p>
+                        <input type="range" id="n" name="n" min="50" max="150" value="100" step="1" />
+                        <label for="n" id="$n"></label>
+                        <input type="range" id="jupiters" name="jupiters" min="50" max="200" value="100" step="10" />
+                        <label for="jupiters" id="$jupiters"></label>
+                    </p>
+                    <p><button>Restart</button></p>
+                </form>
+            </div>
+        </article>
 
     </main>
     <footer> <!-- Some nice extra information at the bottom of the page -->
