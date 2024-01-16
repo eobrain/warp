@@ -16,8 +16,8 @@ const AU = 149597870700 // distance from Earth to Sun
 const MINUTE = 60
 const HOUR = MINUTE * 60
 const DAY = HOUR * 24
-const YEAR = DAY * 365.24
-const EARTH_ORBIT_SPEED = 2 * Math.PI * AU / YEAR
+// const YEAR = DAY * 365.24
+// const EARTH_ORBIT_SPEED = 2 * Math.PI * AU / YEAR
 
 const FRAMES_PER_SECOND = 250
 const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND
@@ -32,8 +32,10 @@ const D2 = [X, Y]
 const initialMass = controls.jupiters * JUPITER_MASS
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 const SIZE = [...D].map(_ => AU)
-const SPEED = EARTH_ORBIT_SPEED * 60
 const TOTAL_MASS = initialMass * controls.n
+
+const ORBIT_TIME = 7 * DAY
+const ANGULAR_VELOCITY = 2 * Math.PI * AU / ORBIT_TIME
 
 const G = 6.6743015e-11
 
@@ -53,7 +55,7 @@ class Particle {
     this.p = [...D].map((_, i) => SIZE[i] / 4 + Math.random() * SIZE[i] / 2)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
-    this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
+    this.v = [...D2].map((_, i) => ANGULAR_VELOCITY * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
     this.v[X] *= -1
     this.v[Z] = 0
     this.m = initialMass
@@ -145,7 +147,7 @@ class Particle {
     for (const i in D) {
       if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
         // Bounce off wall
-        this.nextV[i] = -this.nextV[i] * 0.99
+        this.nextV[i] = -this.nextV[i] * 0.90
       }
     }
   }
