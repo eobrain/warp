@@ -2,6 +2,7 @@
 
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
+import { timeString } from './time.js'
 
 const controls = new Controls()
 
@@ -20,8 +21,6 @@ const EARTH_ORBIT_SPEED = 2 * Math.PI * AU / YEAR
 
 const FRAMES_PER_SECOND = 250
 const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND
-const SPEEDUP = 250 * 600
-const DT = SECONDS_PER_FRAME * SPEEDUP
 
 // Dimensions
 const X = 0
@@ -94,11 +93,6 @@ class Particle {
       yPix,
       rPix,
       0, 2 * Math.PI)
-    /* ctx.arc(
-      (this.p[X] - DT * this.v[X]) / SCALE_M_PER_PIXEL,
-      (this.p[Y] - DT * this.v[Y]) / SCALE_M_PER_PIXEL,
-      rPix,
-      0, 2 * Math.PI) */
     ctx.fill()
   }
 
@@ -123,7 +117,7 @@ class Particle {
     }
   }
 
-  update () {
+  update (dt) {
     for (const i in D) {
       this.acceleration[i] = 0
     }
@@ -136,8 +130,8 @@ class Particle {
       }
     }
     for (const i in D) {
-      this.nextV[i] = this.v[i] + DT * this.acceleration[i]
-      this.nextP[i] = this.p[i] + this.nextV[i] * DT
+      this.nextV[i] = this.v[i] + dt * this.acceleration[i]
+      this.nextP[i] = this.p[i] + this.nextV[i] * dt
       if (Math.abs(this.p[i] > 10 * SIZE[i])) {
         this.deleted = true
       }
@@ -146,8 +140,8 @@ class Particle {
     maxVz = Math.max(maxVz, this.v[Z])
   }
 
-  tick () {
-    this.update()
+  tick (dt) {
+    this.update(dt)
     for (const i in D) {
       if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
         // Bounce off wall
@@ -190,25 +184,11 @@ function drawFrame () {
 
 let time = 0
 
-function timeString (seconds) {
-  if (seconds < 120) {
-    return `${Math.round(seconds)} seconds`
-  }
-  const minutes = seconds / 60
-  if (minutes < 120) {
-    return `${Math.round(minutes)} minutes`
-  }
-  const hours = minutes / 60
-  if (hours < 48) {
-    return `${Math.round(hours)} hours`
-  }
-  const days = hours / 25
-  return `${Math.round(days)} days`
-}
-
 let frame = 0
 let lastMs = Date.now()
 function draw () {
+  const dt = SECONDS_PER_FRAME * controls.speedup
+
   ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, SIZE[X], SIZE[Y])
   drawFrame()
@@ -216,7 +196,7 @@ function draw () {
     particle.draw()
   }
   for (const particle of particles) {
-    particle.tick()
+    particle.tick(dt)
   }
   for (const i in D) {
     for (const particle of particles) {
@@ -234,7 +214,7 @@ function draw () {
     console.log('fps=', 1 / frameDurationS)
     lastMs = currentMs
   }
-  time += DT
+  time += dt
   $time.innerText = timeString(time)
   $count.innerText = `${particles.length} objects`
 }
