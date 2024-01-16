@@ -1,12 +1,16 @@
 /* global $canvas */
 
 import { Perspective } from './view.js'
+import { Controls } from './controls.js'
+
+const controls = new Controls()
 
 const ctx = $canvas.getContext('2d')
 
 // All units are SI (meters, kilograms, etc.) unless suffix added
 
-const SUN_MASS = 1.9891e30
+// const SUN_MASS = 1.9891e30
+const JUPITER_MASS = 1.898e27
 const AU = 149597870700 // distance from Earth to Sun
 const MINUTE = 60
 const HOUR = MINUTE * 60
@@ -21,14 +25,12 @@ const Z = 2
 const D = [X, Y, Z]
 const D2 = [X, Y]
 
-const N = 100
-
 const DT = 10 * MINUTE
-const MASS = 10 * SUN_MASS / N
+const initialMass = controls.jupiters * JUPITER_MASS
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 const SIZE = [...D].map(_ => AU)
 const SPEED = EARTH_ORBIT_SPEED * 60
-const TOTAL_MASS = MASS * N
+const TOTAL_MASS = initialMass * controls.n
 
 const G = 6.6743015e-11
 
@@ -51,7 +53,7 @@ class Particle {
     this.v = [...D2].map((_, i) => SPEED * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
     this.v[X] *= -1
     this.v[Z] = 0
-    this.m = MASS // (1000 * Math.random())
+    this.m = initialMass
     this.acceleration = [...D].map(_ => 0)
     this.radius = radius(this.m)
     this.nextP = [...D]
@@ -152,7 +154,7 @@ class Particle {
   }
 }
 
-let particles = [...Array(N)].map(_ => new Particle())
+let particles = [...Array(controls.n)].map(_ => new Particle())
 
 const FRAME_PATH = [
   [0, 0, 0],
