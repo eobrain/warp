@@ -2,17 +2,17 @@
 
 export class Controls {
   constructor () {
-    this.setN(100)
-    this.setJupiters(100)
+    this.setLogN(2)
+    this.setLogJupiters(2)
     for (const param of document.location.search.split(/[?&]/)) {
       const [name, value] = param.split(/=/)
       switch (name) {
         case 'n':
-          this.setN(value)
+          this.setLogN(value)
           $n.control.value = value
           break
         case 'jupiters':
-          this.setJupiters(value)
+          this.setLogJupiters(value)
           $jupiters.control.value = value
           break
         case '':
@@ -22,17 +22,17 @@ export class Controls {
           break
       }
     }
-    $n.control.onchange = () => this.setN($n.control.value)
-    $jupiters.control.onchange = () => this.setJupiters($jupiters.control.value)
+    $n.control.onchange = () => this.setLogN($n.control.value)
+    $jupiters.control.onchange = () => this.setLogJupiters($jupiters.control.value)
   }
 
-  setN (n) {
-    this.n = Number(n)
+  setLogN (logN) {
+    this.n = Math.round(10 ** Number(logN))
     $n.innerText = `Initially ${this.n} planets`
   }
 
-  setJupiters (jupiters) {
-    this.jupiters = Number(jupiters)
-    $jupiters.innerText = `each of size ${this.jupiters} jupiters`
+  setLogJupiters (jupiters) {
+    this.jupiters = 10 ** Number(jupiters)
+    $jupiters.innerText = `each of size ${Math.round(this.jupiters)} jupiters`
   }
 }

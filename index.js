@@ -1,4 +1,4 @@
-/* global $canvas $time */
+/* global $canvas $time $count */
 
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
@@ -237,6 +237,7 @@ function draw () {
   }
   time += DT
   $time.innerText = timeString(time)
+  $count.innerText = `${particles.length} objects`
 }
 
 // window.requestAnimationFrame(draw)
