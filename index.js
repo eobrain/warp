@@ -150,10 +150,9 @@ class Particle {
     this.update()
     for (const i in D) {
       if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
-        this.nextV[i] = -this.nextV[i]
+        // Bounce off wall
+        this.nextV[i] = -this.nextV[i] * 0.99
       }
-      // while (this.nextP[i] < 0) this.nextP[i] += SIZE[i]
-      // while (this.nextP[i] > SIZE[i]) this.nextP[i] -= SIZE[i]
     }
   }
 }
