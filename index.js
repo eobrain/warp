@@ -83,7 +83,7 @@ class Particle {
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
 
     const [, yBasePix] = view.transform(this.p[X], SIZE[Y], this.p[Z])
-    ctx.strokeStyle = `rgba(100%, 100%, 100%, ${100 * this.m / TOTAL_MASS}%)`
+    ctx.strokeStyle = `rgba(100%, 100%, 100%, ${100 * Math.sqrt(this.m / TOTAL_MASS)}%)`
     ctx.beginPath()
     ctx.moveTo(xPix, yPix)
     ctx.lineTo(xPix, yBasePix)
@@ -208,7 +208,7 @@ function draw () {
   }
 
   particles = particles.filter(particle => !particle.deleted)
-  particles.sort((a, b) => a.p[Z] - b.p[Z])
+  particles.sort((a, b) => b.p[Z] - a.p[Z])
   ++frame
   if (frame % FRAMES_PER_SECOND === 0) {
     const currentMs = Date.now()
