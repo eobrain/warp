@@ -1,4 +1,4 @@
-/* global $n $jupiters $speedup */
+/* global $n $jupiters $speedup $wrap $bounce */
 
 import { timeString } from './time.js'
 
@@ -7,6 +7,7 @@ export class Controls {
     this.setLogN(2)
     this.setLogJupiters(2)
     this.setLogSpeedup(5.176)
+    this.setEdge('wrap')
     for (const param of document.location.search.split(/[?&]/)) {
       const [name, value] = param.split(/=/)
       switch (name) {
@@ -22,16 +23,20 @@ export class Controls {
           this.setLogSpeedup(value)
           $speedup.control.value = value
           break
-        case '':
+        case 'edge':
+          this.setEdge(value)
+          document.getElementById('$' + value).checked = true
           break
         default:
-          console.error(`Unknown parameter "${name}=${value}`)
+          console.error(`Unknown parameter "${name}=${value}"`)
           break
       }
     }
     $n.control.onchange = () => this.setLogN($n.control.value)
     $jupiters.control.onchange = () => this.setLogJupiters($jupiters.control.value)
     $speedup.control.onchange = () => this.setLogSpeedup($speedup.control.value)
+    $bounce.onchange = () => this.setEdge($bounce.checked ? 'bounce' : 'wrap')
+    $wrap.onchange = () => this.setEdge($wrap.checked ? 'wrap' : 'bounce')
   }
 
   setLogN (logN) {
@@ -47,5 +52,19 @@ export class Controls {
   setLogSpeedup (speedup) {
     this.speedup = 10 ** Number(speedup)
     $speedup.innerText = `${timeString(this.speedup)} per second`
+  }
+
+  setEdge (edge) {
+    switch (edge) {
+      case 'wrap':
+        this.wrap = true
+        break
+      case 'bounce':
+        this.wrap = false
+        break
+      default:
+        console.error(`Unknown edge value "${edge}"`)
+        break
+    }
   }
 }

@@ -99,7 +99,16 @@ class Particle {
   }
 
   updateAcceleration (other) {
-    const dp = [...D].map(i => this.p[i] - other.p[i])
+    const dp = [...D].map(i => {
+      if (!controls.wrap) {
+        return this.p[i] - other.p[i]
+      }
+      const d = this.p[i] - other.p[i]
+      if (d > SIZE[i] / 2) return d - SIZE[i]
+      if (d < -SIZE[i] / 2) return d + SIZE[i]
+      return d
+    })
+
     const r = Math.sqrt(dp.reduce(
       (acc, curr) => acc + curr * curr,
       0))
@@ -144,10 +153,21 @@ class Particle {
 
   tick (dt) {
     this.update(dt)
-    for (const i in D) {
-      if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
-        // Bounce off wall
-        this.nextV[i] = -this.nextV[i] * 0.90
+    if (controls.wrap) {
+      for (const i in D) {
+        while (this.nextP[i] < 0) {
+          this.nextP[i] += SIZE[i]
+        }
+        while (this.nextP[i] > SIZE[i]) {
+          this.nextP[i] -= SIZE[i]
+        }
+      }
+    } else {
+      for (const i in D) {
+        if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
+          // Bounce off wall
+          this.nextV[i] = -this.nextV[i] * 0.90
+        }
       }
     }
   }
