@@ -269,7 +269,7 @@ function draw () {
   // Draw the outline of the space
   drawFrame()
 
-  // Deaw the particles
+  // Draw the particles
   for (const particle of particles) {
     particle.draw()
   }
@@ -290,7 +290,7 @@ function draw () {
   // Remove particles deleted by collisions
   particles = particles.filter(particle => !particle.deleted)
 
-  // Sort in Z order so nearer objects are drawn on top of farthur objeces
+  // Sort in Z order so nearer objects are drawn on top of farther objects
   particles.sort((a, b) => b.p[Z] - a.p[Z])
 
   // Update framecount and time
