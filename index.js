@@ -29,7 +29,8 @@ const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND
 const X = 0
 const Y = 1
 const Z = 2
-const D = [X, Y, Z]
+const Q = 3
+const D = [X, Y, Z, Q, 4, 5, 6, 7, 8, 9]
 const D2 = [X, Y]
 
 // Mass of each object initially before collisions (in Kg)
@@ -72,6 +73,13 @@ class Particle {
     this.v = [...D2].map((_, i) => ANGULAR_VELOCITY * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
     this.v[X] *= -1
     this.v[Z] = 0
+    this.v[Q] = 0
+    this.v[4] = 0
+    this.v[5] = 0
+    this.v[6] = 0
+    this.v[7] = 0
+    this.v[8] = 0
+    this.v[9] = 0
 
     // Mass
     this.m = initialMass
@@ -94,14 +102,14 @@ class Particle {
     // Set color according to velocity in the Z direction (doppler effect)
     let hue = 0
     let saturation = 0
-    if (this.v[Z] > 0) {
+    if (this.v[Q] > 0) {
       // Moving away so red shift
       hue = 0 // red
-      saturation = Math.trunc(100 * this.v[Z] / maxVz)
-    } else if (this.v[Z] < 0) {
+      saturation = Math.trunc(100 * this.v[Q] / maxVz)
+    } else if (this.v[Q] < 0) {
       // moving towards so blue shift
       hue = 240 // blue
-      saturation = Math.trunc(100 * this.v[Z] / minVz)
+      saturation = Math.trunc(100 * this.v[Q] / minVz)
     }
     const lightness = 100 - Math.trunc(this.p[Z] * 50 / SIZE[Z])
     ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
@@ -188,8 +196,8 @@ class Particle {
         this.deleted = true
       }
     }
-    minVz = Math.min(minVz, this.v[Z])
-    maxVz = Math.max(maxVz, this.v[Z])
+    minVz = Math.min(minVz, this.v[Q])
+    maxVz = Math.max(maxVz, this.v[Q])
   }
 
   tick (dt) {
