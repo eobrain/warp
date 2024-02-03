@@ -7,7 +7,7 @@ export class Controls {
     this.setLogN(2)
     this.setLogJupiters(2)
     this.setLogSpeedup(5.176)
-    this.setEdge('wrap')
+    this.setEdge('bounce')
     for (const param of document.location.search.split(/[?&]/)) {
       const [name, value] = param.split(/=/)
       switch (name) {
