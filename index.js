@@ -210,7 +210,8 @@ class Particle {
     } else {
       // Bounce by inverting the velocity vector component in the dimension where the object went past the edge
       for (const i in D) {
-        if (this.nextP[i] < 0 || this.nextP[i] > SIZE[i]) {
+        if ((this.nextP[i] < 0 && this.nextV[i] < 0) ||
+         (this.nextP[i] > SIZE[i] && this.nextV[i] > 0)) {
           // Bounce off wall
           this.nextV[i] = -this.nextV[i] * 0.90
         }
