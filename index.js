@@ -20,7 +20,9 @@ const DAY = HOUR * 24
 // const YEAR = DAY * 365.24
 // const EARTH_ORBIT_SPEED = 2 * Math.PI * AU / YEAR
 
-const FRAMES_PER_SECOND = 250
+// Assume this typical value used by requestAnimationFrame
+const FRAMES_PER_SECOND = 60
+
 const SECONDS_PER_FRAME = 1 / FRAMES_PER_SECOND
 
 // Dimension indices
@@ -306,7 +308,10 @@ function draw () {
   // Update HTML to show time and object count
   $time.innerText = timeString(time)
   $count.innerText = `${particles.length} objects`
+
+  // schedule next frame
+  window.requestAnimationFrame(draw)
 }
 
-// window.requestAnimationFrame(draw)
-setInterval(draw, 1000 / FRAMES_PER_SECOND)
+// Draw first frame
+window.requestAnimationFrame(draw)
