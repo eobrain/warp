@@ -4,6 +4,10 @@ import { Perspective } from './view.js'
 import { Controls } from './controls.js'
 import { timeString } from './time.js'
 
+const drawingBufferSize = Math.min(window.screen.width, window.screen.height)
+$canvas.width = drawingBufferSize
+$canvas.height = drawingBufferSize
+
 // Values entered by the user through the UI
 const controls = new Controls()
 
@@ -35,7 +39,7 @@ const D = [X, Y, Z]
 const initialMass = controls.jupiters * JUPITER_MASS
 
 // Dimensions of the view in pixels
-const VIEWPORT_SIZE = [...D].map(_ => 500)
+// const VIEWPORT_SIZE = [...D].map(_ => drawingBufferSize)
 
 // Dimension of the space (metres)
 const SIZE = [...D].map(_ => 2 * AU)
@@ -55,7 +59,7 @@ const radius = mass => (mass / DENSITY) ** (1.0 / 3.0)
 let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
 
-const view = new Perspective(SIZE[0] / VIEWPORT_SIZE[0], SIZE)
+const view = new Perspective(SIZE[0] / drawingBufferSize, SIZE)
 
 const FRAME_COLOR = 'green'
 
