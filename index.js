@@ -30,7 +30,6 @@ const X = 0
 const Y = 1
 const Z = 2
 const D = [X, Y, Z]
-const D2 = [X, Y]
 
 // Mass of each object initially before collisions (in Kg)
 const initialMass = controls.jupiters * JUPITER_MASS
@@ -69,9 +68,10 @@ class Particle {
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
 
     // Velocity vector
-    this.v = [...D2].map((_, i) => ANGULAR_VELOCITY * dFromCenter * pFromCenter[1 - i] / ((SIZE[i] / 2) ** 2))
-    this.v[X] *= -1
-    this.v[Z] = 0
+    this.v = [...D]
+    this.v[X] = ANGULAR_VELOCITY * dFromCenter * pFromCenter[Z] / ((SIZE[X] / 2) ** 2)
+    this.v[Y] = 0
+    this.v[Z] = -ANGULAR_VELOCITY * dFromCenter * pFromCenter[X] / ((SIZE[Z] / 2) ** 2)
 
     // Mass
     this.m = initialMass
