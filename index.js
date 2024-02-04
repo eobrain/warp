@@ -39,7 +39,7 @@ const initialMass = controls.jupiters * JUPITER_MASS
 const VIEWPORT_SIZE = [...D].map(_ => 500)
 
 // Dimension of the space (metres)
-const SIZE = [...D].map(_ => AU)
+const SIZE = [...D].map(_ => 2 * AU)
 
 // Total mass in Kg of all the objects
 const TOTAL_MASS = initialMass * controls.n
@@ -64,12 +64,12 @@ const FRAME_COLOR = 'green'
 class Particle {
   constructor () {
     // Position vector
-    this.p = [...D].map((_, i) => SIZE[i] / 4 + Math.random() * SIZE[i] / 2)
+    this.p = [...D].map((_, i) => 3 * SIZE[i] / 8 + Math.random() * SIZE[i] / 4)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
 
     // Velocity vector
-    this.v = [...D2].map((_, i) => ANGULAR_VELOCITY * dFromCenter * pFromCenter[1 - i] / (SIZE[i] ** 2))
+    this.v = [...D2].map((_, i) => ANGULAR_VELOCITY * dFromCenter * pFromCenter[1 - i] / ((SIZE[i] / 2) ** 2))
     this.v[X] *= -1
     this.v[Z] = 0
 
