@@ -64,8 +64,13 @@ let minVz = Number.MAX_VALUE
 const view = new Perspective(SIZE[0] / drawingBufferSize, SIZE)
 
 const FRAME_COLOR = 'green'
+const DOT_COLOR = 'magenta'
 
 const randomish = new Randomish(0)
+
+const HISTORY = 2000
+const dots = controls.tracks ? [...Array(HISTORY)].map(d => []) : null
+let dotCount = 0
 
 // A massive spherical object moving in space
 class Particle {
@@ -139,6 +144,12 @@ class Particle {
       rPix,
       0, 2 * Math.PI)
     ctx.fill()
+
+    if (controls.tracks && frame % 3 === 0) {
+      const dot = dots[(dotCount++) % HISTORY]
+      dot[X] = xPix
+      dot[Y] = yPix
+    }
   }
 
   // Add acceleration contribution caused other object
@@ -267,6 +278,15 @@ function drawFrame () {
   ctx.stroke()
 }
 
+function drawDots () {
+  ctx.fillStyle = DOT_COLOR
+  // ctx.beginPath()
+  for (const dot of dots) {
+    ctx.fillRect(dot[X], dot[Y], 1, 1)
+    // ctx.stroke()
+  }
+}
+
 // Initialize
 let time = 0
 let frame = 0
@@ -282,6 +302,10 @@ function draw () {
 
   // Draw the outline of the space
   drawFrame()
+
+  if (controls.tracks) {
+    drawDots()
+  }
 
   // Draw the particles
   for (const particle of particles) {
