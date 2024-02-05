@@ -323,6 +323,7 @@ function draw () {
 
   // schedule next frame
   window.requestAnimationFrame(draw)
+  // setTimeout(draw, 0)
 }
 
 // Draw first frame
