@@ -67,11 +67,19 @@ const FRAME_COLOR = 'green'
 
 const randomish = new Randomish(0)
 
+const HISTORY = 10
+let nowIndex = 0
+const nextIndex = () => (nowIndex + 1) % HISTORY
+
 // A massive spherical object moving in space
 class Particle {
   constructor () {
     // Position vector
-    this.p = [...D].map((_, i) => 3 * SIZE[i] / 8 + randomish.random() * SIZE[i] / 4)
+    this.ps = [...Array(HISTORY)].map(a => []).map(p => [...D])
+    this.setPs()
+    for (const i in D) {
+      this.p[i] = 3 * SIZE[i] / 8 + randomish.random() * SIZE[i] / 4
+    }
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
 
@@ -93,15 +101,42 @@ class Particle {
     // radius
     this.radius = radius(this.m)
 
-    // Position vector after next time delta
-    this.nextP = [...D]
-
     // Velocity vector after next time delta
     this.nextV = [...D]
   }
 
+  setPs () {
+    this.p = this.ps[nowIndex]
+    this.nextP = this.ps[nextIndex()]
+  }
+
+  drawCircle (p, age) {
+    // Apply perspective transforms to the radius and the position to get the pixel coordinates
+    const rPix = view.transformSize(this.radius, p[Z])
+    const [xPix, yPix] = view.transform(...p)
+    if (age === 0) {
+      const [, yBasePix] = view.transform(p[X], SIZE[Y], p[Z])
+      // Deaw the vertical line from the bottom of the space to the paricle
+      ctx.beginPath()
+      ctx.moveTo(xPix, yPix)
+      ctx.lineTo(xPix, yBasePix)
+      ctx.stroke()
+    }
+
+    // Draw the particle as a circle
+    ctx.beginPath()
+    ctx.arc(
+      xPix,
+      yPix,
+      rPix,
+      0, 2 * Math.PI)
+    ctx.fill()
+  }
+
   // Draw this object in and HTML canvas
   draw () {
+    this.setPs()
+
     // Set color according to velocity in the Z direction (doppler effect)
     let hue = 0
     let saturation = 0
@@ -115,30 +150,14 @@ class Particle {
       saturation = Math.trunc(100 * this.v[Z] / minVz)
     }
     const lightness = 100 - Math.trunc(this.p[Z] * 50 / SIZE[Z])
-    ctx.fillStyle = `hsl(${hue} ${saturation}% ${lightness}%)`
-
-    // Apply perspective transforms to the radius and the position to get the pixel coordinates
-    const rPix = view.transformSize(this.radius, this.p[Z])
-    const [xPix, yPix] = view.transform(...this.p)
-    const [, yBasePix] = view.transform(this.p[X], SIZE[Y], this.p[Z])
 
     // Set the color
     ctx.strokeStyle = `rgba(100%, 100%, 100%, ${100 * Math.sqrt(this.m / TOTAL_MASS)}%)`
 
-    // Deaw the vertical line from the bottom of the space to the paricle
-    ctx.beginPath()
-    ctx.moveTo(xPix, yPix)
-    ctx.lineTo(xPix, yBasePix)
-    ctx.stroke()
-
-    // Draw the particle as a circle
-    ctx.beginPath()
-    ctx.arc(
-      xPix,
-      yPix,
-      rPix,
-      0, 2 * Math.PI)
-    ctx.fill()
+    for (let age = 1; age <= HISTORY; ++age) {
+      ctx.fillStyle = `hsla(${hue} ${saturation}% ${lightness}% / ${(age - 1) / HISTORY})`
+      this.drawCircle(this.ps[(nowIndex + age) % HISTORY], age)
+    }
   }
 
   // Add acceleration contribution caused other object
@@ -222,7 +241,7 @@ class Particle {
       // Bounce by inverting the velocity vector component in the dimension where the object went past the edge
       for (const i in D) {
         if ((this.nextP[i] < 0 && this.nextV[i] < 0) ||
-         (this.nextP[i] > SIZE[i] && this.nextV[i] > 0)) {
+          (this.nextP[i] > SIZE[i] && this.nextV[i] > 0)) {
           // Bounce off wall
           this.nextV[i] = -this.nextV[i] * 0.90
         }
@@ -296,10 +315,10 @@ function draw () {
   // Update postions and velocites with new values
   for (const i in D) {
     for (const particle of particles) {
-      particle.p[i] = particle.nextP[i]
       particle.v[i] = particle.nextV[i]
     }
   }
+  nowIndex = nextIndex()
 
   // Remove particles deleted by collisions
   particles = particles.filter(particle => !particle.deleted)
