@@ -3,6 +3,8 @@
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
 import { timeString } from './time.js'
+import { Randomish } from './randomish.js'
+import { euler, rungeKutta } from './integrate.js'
 
 const drawingBufferSize = Math.min(window.screen.width, window.screen.height)
 $canvas.width = drawingBufferSize
@@ -63,19 +65,24 @@ const view = new Perspective(SIZE[0] / drawingBufferSize, SIZE)
 
 const FRAME_COLOR = 'green'
 
+const randomish = new Randomish(0)
+
 // A massive spherical object moving in space
 class Particle {
   constructor () {
     // Position vector
-    this.p = [...D].map((_, i) => 3 * SIZE[i] / 8 + Math.random() * SIZE[i] / 4)
+    this.p = [...D].map((_, i) => 3 * SIZE[i] / 8 + randomish.random() * SIZE[i] / 4)
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
 
     // Velocity vector
     this.v = [...D]
-    this.v[X] = ANGULAR_VELOCITY * dFromCenter * pFromCenter[Z] / ((SIZE[X] / 2) ** 2)
-    this.v[Y] = 0
-    this.v[Z] = -ANGULAR_VELOCITY * dFromCenter * pFromCenter[X] / ((SIZE[Z] / 2) ** 2)
+    // this.v[X] = ANGULAR_VELOCITY * dFromCenter * pFromCenter[Z] / ((SIZE[X] / 2) ** 2)
+    // this.v[Y] = 0
+    // this.v[Z] = -ANGULAR_VELOCITY * dFromCenter * pFromCenter[X] / ((SIZE[Z] / 2) ** 2)
+    this.v[X] = ANGULAR_VELOCITY * dFromCenter * pFromCenter[Y] / ((SIZE[X] / 2) ** 2)
+    this.v[Y] = -ANGULAR_VELOCITY * dFromCenter * pFromCenter[X] / ((SIZE[Y] / 2) ** 2)
+    this.v[Z] = 0
 
     // Mass
     this.m = initialMass
@@ -186,8 +193,8 @@ class Particle {
       }
     }
     for (const i in D) {
-      this.nextV[i] = this.v[i] + dt * this.acceleration[i]
-      this.nextP[i] = this.p[i] + this.nextV[i] * dt
+      this.nextV[i] = euler(t => this.acceleration[i], this.v[i], dt)
+      this.nextP[i] = rungeKutta(t => (this.v[i] + t * this.acceleration[i]), this.p[i], dt)
       if (Math.abs(this.p[i] > 10 * SIZE[i])) {
         this.deleted = true
       }
