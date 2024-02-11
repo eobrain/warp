@@ -103,10 +103,15 @@ class Particle {
 
     // Velocity vector after next time delta
     this.nextV = [...D]
+
+    this.visible = true
   }
 
   // Draw this object in and HTML canvas
   draw () {
+    if (!this.visible) {
+      return
+    }
     // Set color according to velocity in the Z direction (doppler effect)
     let hue = 0
     let saturation = 0
@@ -229,13 +234,32 @@ class Particle {
           this.nextP[i] -= SIZE[i]
         }
       }
+    } else if (controls.infinite) {
+      // Mark as invisible if beyond the edge
+      this.visible = true
+      for (const i in D) {
+        if (this.nextP[i] < 0 ||
+          this.nextP[i] > SIZE[i]) {
+          this.visible = false
+          break
+        }
+      }
     } else {
       // Bounce by inverting the velocity vector component in the dimension where the object went past the edge
       for (const i in D) {
         if ((this.nextP[i] < 0 && this.nextV[i] < 0) ||
-         (this.nextP[i] > SIZE[i] && this.nextV[i] > 0)) {
-          // Bounce off wall
-          this.nextV[i] = -this.nextV[i] * 0.90
+          (this.nextP[i] > SIZE[i] && this.nextV[i] > 0)) {
+          if (controls.bounce) {
+            // Bounce off wall
+            this.nextV[i] = -this.nextV[i] * 0.90
+          } else if (controls.slide) {
+            this.nextV[i] = 0
+          } else {
+            for (const ii in D) {
+              this.nextV[ii] = 0
+            }
+            break
+          }
         }
       }
     }
