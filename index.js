@@ -1,4 +1,4 @@
-/* global $canvas $time $count */
+/* global $canvas $time $count $kineticEnergy $potentialEnergy */
 
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
@@ -193,6 +193,9 @@ class Particle {
     for (const i in D) {
       this.acceleration[i] += -dp[i] * other.m * G / (r * r * r)
     }
+
+    // Calculate incremental potential energy
+    this.potentialEnergy -= G * this.m * other.m / r
   }
 
   // Update acceleration, velocity, and position
@@ -200,6 +203,7 @@ class Particle {
     for (const i in D) {
       this.acceleration[i] = 0
     }
+    this.potentialEnergy = 0
     for (const other of particles) {
       if (other !== this && !other.deleted) {
         this.updateAcceleration(other)
@@ -316,6 +320,9 @@ let time = 0
 let frame = 0
 let lastMs = Date.now()
 
+let initialKineticEnergy = 0
+let minPotentialEnergy = 0
+
 // Function called on every frame
 function draw () {
   const dt = SECONDS_PER_FRAME * controls.speedup
@@ -341,12 +348,24 @@ function draw () {
     particle.tick(dt)
   }
 
+  let kineticEnergy = 0
+  let potentialEnergy = 0
   // Update postions and velocites with new values
-  for (const i in D) {
-    for (const particle of particles) {
+  for (const particle of particles) {
+    let v2 = 0
+    for (const i in D) {
       particle.p[i] = particle.nextP[i]
       particle.v[i] = particle.nextV[i]
+      v2 += particle.v[i] * particle.v[i]
     }
+    kineticEnergy += particle.m * v2
+    potentialEnergy += particle.potentialEnergy
+    if (potentialEnergy < minPotentialEnergy) {
+      minPotentialEnergy = potentialEnergy * 2
+    }
+  }
+  if (initialKineticEnergy === 0) {
+    initialKineticEnergy = kineticEnergy
   }
 
   // Remove particles deleted by collisions
@@ -368,6 +387,8 @@ function draw () {
   // Update HTML to show time and object count
   $time.innerText = timeString(time)
   $count.innerText = `${particles.length} objects`
+  $kineticEnergy.style.width = `${-20 * kineticEnergy / minPotentialEnergy}vw`
+  $potentialEnergy.style.width = `${20 * (minPotentialEnergy - potentialEnergy) / minPotentialEnergy}vw`
 
   // schedule next frame
   window.requestAnimationFrame(draw)
