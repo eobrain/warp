@@ -1,4 +1,4 @@
-/* global $canvas $time $count */
+/* global $canvas $time $count $kineticEnergy */
 
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
@@ -316,6 +316,8 @@ let time = 0
 let frame = 0
 let lastMs = Date.now()
 
+let initialKineticEnergy = 0
+
 // Function called on every frame
 function draw () {
   const dt = SECONDS_PER_FRAME * controls.speedup
@@ -341,12 +343,19 @@ function draw () {
     particle.tick(dt)
   }
 
+  let kineticEnergy = 0
   // Update postions and velocites with new values
-  for (const i in D) {
-    for (const particle of particles) {
+  for (const particle of particles) {
+    let v2 = 0
+    for (const i in D) {
       particle.p[i] = particle.nextP[i]
       particle.v[i] = particle.nextV[i]
+      v2 += particle.v[i] * particle.v[i]
     }
+    kineticEnergy += particle.m * v2
+  }
+  if (initialKineticEnergy === 0) {
+    initialKineticEnergy = kineticEnergy
   }
 
   // Remove particles deleted by collisions
@@ -368,6 +377,7 @@ function draw () {
   // Update HTML to show time and object count
   $time.innerText = timeString(time)
   $count.innerText = `${particles.length} objects`
+  $kineticEnergy.style.width = `${10 * kineticEnergy / initialKineticEnergy}%`
 
   // schedule next frame
   window.requestAnimationFrame(draw)
