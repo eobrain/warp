@@ -1,4 +1,4 @@
-/* global $n $jupiters $speedup $wrap $bounce $slide $stick $tracks */
+/* global $n $jupiters $speedup $bounce $infinite $slide $stick $wrap $tracks */
 
 import { timeString } from './time.js'
 
@@ -49,22 +49,27 @@ export class Controls {
       this.setEdge($bounce.checked
         ? $bounce.value
         : (
-            $slide.checked
-              ? $slide.value
+            $infinite.checked
+              ? $infinite.value
               : (
-                  $stick.checked
-                    ? $stick.value
+                  $slide.checked
+                    ? $slide.value
                     : (
-                        $wrap.checked
-                          ? $wrap.value
+                        $stick.checked
+                          ? $stick.value
                           : (
-                              'unknown-control'
+                              $wrap.checked
+                                ? $wrap.value
+                                : (
+                                    'unknown-control'
+                                  )
                             )
                       )
                 )
           ))
     }
     $bounce.onchange = onEdge
+    $infinite.onchange = onEdge
     $slide.onchange = onEdge
     $stick.onchange = onEdge
     $wrap.onchange = onEdge
@@ -88,12 +93,16 @@ export class Controls {
 
   setEdge (edge) {
     this.bounce = false
+    this.infinite = false
     this.slide = false
     this.stick = false
     this.wrap = false
     switch (edge) {
       case $bounce.value:
         this.bounce = true
+        break
+      case $infinite.value:
+        this.infinite = true
         break
       case $slide.value:
         this.slide = true

@@ -103,10 +103,15 @@ class Particle {
 
     // Velocity vector after next time delta
     this.nextV = [...D]
+
+    this.visible = true
   }
 
   // Draw this object in and HTML canvas
   draw () {
+    if (!this.visible) {
+      return
+    }
     // Set color according to velocity in the Z direction (doppler effect)
     let hue = 0
     let saturation = 0
@@ -227,6 +232,16 @@ class Particle {
         }
         while (this.nextP[i] > SIZE[i]) {
           this.nextP[i] -= SIZE[i]
+        }
+      }
+    } else if (controls.infinite) {
+      // Mark as invisible if beyond the edge
+      this.visible = true
+      for (const i in D) {
+        if (this.nextP[i] < 0 ||
+          this.nextP[i] > SIZE[i]) {
+          this.visible = false
+          break
         }
       }
     } else {
