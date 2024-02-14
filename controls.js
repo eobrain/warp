@@ -4,8 +4,8 @@ const DEFAULT_EDGE = $slide.value
 
 export class Controls {
   constructor () {
-    this.setLogN(2)
-    this.setLogJupiters(2)
+    this.setLogN(1)
+    this.setLogJupiters(2.5)
     this.setEdge(DEFAULT_EDGE)
     this.setTracks('off')
     for (const param of document.location.search.split(/[?&]/)) {
