@@ -2,6 +2,7 @@
 
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
+import { Speedup } from './speedup.js'
 import { timeString } from './time.js'
 import { Randomish } from './randomish.js'
 import { euler, rungeKutta } from './integrate.js'
@@ -44,7 +45,10 @@ const initialMass = controls.jupiters * JUPITER_MASS
 // const VIEWPORT_SIZE = [...D].map(_ => drawingBufferSize)
 
 // Dimension of the space (metres)
-const SIZE = [...D].map(_ => 2 * AU)
+const VOLUME_WIDTH = 2 * AU
+const SIZE = [...D].map(_ => VOLUME_WIDTH)
+
+const speedup = new Speedup(VOLUME_WIDTH)
 
 // Total mass in Kg of all the objects
 const TOTAL_MASS = initialMass * controls.n
@@ -213,8 +217,14 @@ class Particle {
       }
     }
     for (const i in D) {
-      this.nextV[i] = euler(t => this.acceleration[i], this.v[i], dt)
-      this.nextP[i] = rungeKutta(t => (this.v[i] + t * this.acceleration[i]), this.p[i], dt)
+      const dV = euler(t => this.acceleration[i], dt)
+      this.nextV[i] = this.v[i] + dV
+      const dP = rungeKutta(t => (this.v[i] + t * this.acceleration[i]), dt)
+      this.nextP[i] = this.p[i] + dP
+      speedup.values(dP, dV)
+
+      // Delete oarticlas that go to far
+      // TODO(eob) Remove this
       if (Math.abs(this.p[i] > 10 * SIZE[i])) {
         this.deleted = true
       }
@@ -325,7 +335,7 @@ let minPotentialEnergy = 0
 
 // Function called on every frame
 function draw () {
-  const dt = SECONDS_PER_FRAME * controls.speedup
+  const dt = SECONDS_PER_FRAME * speedup.speedup
 
   // Set black background
   ctx.fillStyle = 'black'
@@ -344,9 +354,12 @@ function draw () {
   }
 
   // calculate new velocies and positions
+  speedup.resetMaxDp()
   for (const particle of particles) {
     particle.tick(dt)
   }
+  console.log('maxDv=', speedup.maxDv)
+  speedup.adjust()
 
   let kineticEnergy = 0
   let potentialEnergy = 0
