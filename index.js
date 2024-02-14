@@ -217,10 +217,11 @@ class Particle {
       }
     }
     for (const i in D) {
-      this.nextV[i] = this.v[i] + euler(t => this.acceleration[i], dt)
+      const dV = euler(t => this.acceleration[i], dt)
+      this.nextV[i] = this.v[i] + dV
       const dP = rungeKutta(t => (this.v[i] + t * this.acceleration[i]), dt)
       this.nextP[i] = this.p[i] + dP
-      speedup.dpIs(dP)
+      speedup.values(dP, dV)
 
       // Delete oarticlas that go to far
       // TODO(eob) Remove this
@@ -357,7 +358,7 @@ function draw () {
   for (const particle of particles) {
     particle.tick(dt)
   }
-  console.log('maxDp=', speedup.maxDp / SIZE[X])
+  console.log('maxDv=', speedup.maxDv)
   speedup.adjust()
 
   let kineticEnergy = 0
