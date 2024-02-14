@@ -1,7 +1,8 @@
-/* global $canvas $time $count $kineticEnergy $potentialEnergy $speedup */
+/* global $canvas $time $count $kineticEnergy $potentialEnergy */
 
 import { Perspective } from './view.js'
 import { Controls } from './controls.js'
+import { Speedup } from './speedup.js'
 import { timeString } from './time.js'
 import { Randomish } from './randomish.js'
 import { euler, rungeKutta } from './integrate.js'
@@ -44,39 +45,10 @@ const initialMass = controls.jupiters * JUPITER_MASS
 // const VIEWPORT_SIZE = [...D].map(_ => drawingBufferSize)
 
 // Dimension of the space (metres)
-const SIZE = [...D].map(_ => 2 * AU)
+const VOLUME_WIDTH = 2 * AU
+const SIZE = [...D].map(_ => VOLUME_WIDTH)
 
-const MAX_MAX_DP = SIZE[0] / 100
-class Speedup {
-  constructor () {
-    this.setSpeedup(1)
-  }
-
-  setSpeedup (speedup) {
-    this.speedup = speedup
-    $speedup.innerText = `${timeString(this.speedup)} per second`
-  }
-
-  resetMaxDp () {
-    this.maxDp = 0
-  }
-
-  dpIs (dp) {
-    const absDp = Math.abs(dp)
-    if (absDp > this.maxDp) {
-      this.maxDp = absDp
-    }
-  }
-
-  adjust () {
-    if (this.maxDp > MAX_MAX_DP) {
-      this.setSpeedup(this.speedup / 10)
-    } else if (this.maxDp < MAX_MAX_DP / 12) {
-      this.setSpeedup(this.speedup * 10)
-    }
-  }
-}
-const speedup = new Speedup()
+const speedup = new Speedup(VOLUME_WIDTH)
 
 // Total mass in Kg of all the objects
 const TOTAL_MASS = initialMass * controls.n
