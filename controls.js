@@ -1,6 +1,4 @@
-/* global $n $jupiters $speedup $bounce $infinite $slide $stick $wrap $tracks */
-
-import { timeString } from './time.js'
+/* global $n $jupiters $bounce $infinite $slide $stick $wrap $tracks */
 
 const DEFAULT_EDGE = $slide.value
 
@@ -8,7 +6,6 @@ export class Controls {
   constructor () {
     this.setLogN(2)
     this.setLogJupiters(2)
-    this.setLogSpeedup(5.176)
     this.setEdge(DEFAULT_EDGE)
     this.setTracks('off')
     for (const param of document.location.search.split(/[?&]/)) {
@@ -21,10 +18,6 @@ export class Controls {
         case 'jupiters':
           this.setLogJupiters(value)
           $jupiters.control.value = value
-          break
-        case 'speedup':
-          this.setLogSpeedup(value)
-          $speedup.control.value = value
           break
         case 'edge':
           this.setEdge(value)
@@ -44,7 +37,6 @@ export class Controls {
     }
     $n.control.onchange = () => this.setLogN($n.control.value)
     $jupiters.control.onchange = () => this.setLogJupiters($jupiters.control.value)
-    $speedup.control.onchange = () => this.setLogSpeedup($speedup.control.value)
     const onEdge = () => {
       this.setEdge($bounce.checked
         ? $bounce.value
@@ -84,11 +76,6 @@ export class Controls {
   setLogJupiters (jupiters) {
     this.jupiters = 10 ** Number(jupiters)
     $jupiters.innerText = `each of size ${Math.round(this.jupiters)} jupiters`
-  }
-
-  setLogSpeedup (speedup) {
-    this.speedup = 10 ** Number(speedup)
-    $speedup.innerText = `${timeString(this.speedup)} per second`
   }
 
   setEdge (edge) {
