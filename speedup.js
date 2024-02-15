@@ -3,6 +3,7 @@ import { timeString } from './time.js'
 /* global $speedup */
 
 const YEAR = 60 * 60 * 24 * 365.24
+const FACTOR = 5
 
 export class Speedup {
   constructor (volumeWidthMeters) {
@@ -28,9 +29,9 @@ export class Speedup {
 
   adjust () {
     if (this.maxDv > this.maxMaxDv || this.maxDp > this.maxMaxDb) {
-      this.setSpeedup(this.speedup / 10)
-    } else if (this.maxDv < this.maxMaxDv / 12 && this.maxDp < this.maxMaxDb / 12) {
-      this.setSpeedup(this.speedup * 10)
+      this.setSpeedup(this.speedup / FACTOR)
+    } else if (this.maxDv < this.maxMaxDv / (FACTOR * 1.5) && this.maxDp < this.maxMaxDb / 3) {
+      this.setSpeedup(this.speedup * FACTOR)
     }
   }
 }
