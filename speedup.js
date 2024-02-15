@@ -3,12 +3,14 @@ import { timeString } from './time.js'
 /* global $speedup */
 
 const YEAR = 60 * 60 * 24 * 365.24
-const FACTOR = 5
+// const FACTOR = 10
+
+const loqQuantize = x => 10 ** Math.round(Math.log10(x))
 
 export class Speedup {
   constructor (volumeWidthMeters) {
-    this.maxMaxDb = volumeWidthMeters / 100
-    this.maxMaxDv = 10000
+    this.maxMaxDp = volumeWidthMeters / 1000
+    this.maxMaxDv = 3500
     this.setSpeedup(1)
   }
 
@@ -28,10 +30,9 @@ export class Speedup {
   }
 
   adjust () {
-    if (this.maxDv > this.maxMaxDv || this.maxDp > this.maxMaxDb) {
-      this.setSpeedup(this.speedup / FACTOR)
-    } else if (this.maxDv < this.maxMaxDv / (FACTOR * 1.5) && this.maxDp < this.maxMaxDb / 3) {
-      this.setSpeedup(this.speedup * FACTOR)
-    }
+    // const fullyAdjusted = this.speedup * Math.sqrt((this.maxMaxDv / this.maxDv) * (this.maxMaxDp / this.maxDp))
+    // this.setSpeedup((this.speedup * FACTOR + fullyAdjusted) / (FACTOR + 1))
+
+    this.setSpeedup(loqQuantize(this.speedup * Math.sqrt((this.maxMaxDv / this.maxDv) * (this.maxMaxDp / this.maxDp))))
   }
 }
