@@ -8,9 +8,9 @@ const YEAR = 60 * 60 * 24 * 365.24
 const loqQuantize = x => 10 ** Math.round(Math.log10(x))
 
 export class Speedup {
-  constructor (volumeWidthMeters) {
-    this.maxMaxDp = volumeWidthMeters / 1000
-    this.maxMaxDv = 3500
+  constructor (initialRadius, velocity) {
+    this.maxMaxDp = initialRadius / 2
+    this.maxMaxDv = velocity / 1000
     this.setSpeedup(1)
   }
 
@@ -34,5 +34,7 @@ export class Speedup {
     // this.setSpeedup((this.speedup * FACTOR + fullyAdjusted) / (FACTOR + 1))
 
     this.setSpeedup(loqQuantize(this.speedup * Math.sqrt((this.maxMaxDv / this.maxDv) * (this.maxMaxDp / this.maxDp))))
+    // this.setSpeedup(loqQuantize(this.speedup * this.maxMaxDv / this.maxDv))
+    // this.setSpeedup(loqQuantize(this.speedup * this.maxMaxDp / this.maxDp))
   }
 }

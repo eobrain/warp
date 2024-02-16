@@ -48,8 +48,6 @@ const initialMass = controls.jupiters * JUPITER_MASS
 const VOLUME_WIDTH = 2 * AU
 const SIZE = [...D].map(_ => VOLUME_WIDTH)
 
-const speedup = new Speedup(VOLUME_WIDTH)
-
 // Total mass in Kg of all the objects
 const TOTAL_MASS = initialMass * controls.n
 
@@ -61,6 +59,8 @@ const G = 6.6743015e-11
 const DENSITY = 1000 // Kg m^-3
 
 const radius = mass => (mass / DENSITY) ** (1.0 / 3.0)
+
+const speedup = new Speedup(radius(initialMass), ANGULAR_VELOCITY)
 
 let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
