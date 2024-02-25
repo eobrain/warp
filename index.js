@@ -62,7 +62,11 @@ const radius = mass => (mass / DENSITY) ** (1.0 / 3.0)
 
 const velocity = r => 5 * Math.sqrt(G * TOTAL_MASS / r)
 
-const speedup = new Speedup(radius(initialMass), 500 * velocity(VOLUME_WIDTH / 4))
+const speedup = new Speedup(
+  radius(initialMass),
+  500 * velocity(VOLUME_WIDTH / 4),
+  () => 100
+)
 
 let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
@@ -287,6 +291,7 @@ class Particle {
 
 // Initialize all the particles
 let particles = [...Array(controls.n)].map(_ => new Particle())
+speedup.nFunc = () => particles.length
 
 // The cubic outline of the space
 const FRAME_PATH = [
@@ -363,7 +368,6 @@ function draw () {
   for (const particle of particles) {
     particle.tick(dt)
   }
-  console.log('maxDv=', speedup.maxDv)
   speedup.adjust()
 
   let kineticEnergy = 0
