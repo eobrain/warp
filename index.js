@@ -60,7 +60,13 @@ const DENSITY = 1000 // Kg m^-3
 
 const radius = mass => (mass / DENSITY) ** (1.0 / 3.0)
 
-const speedup = new Speedup(radius(initialMass), ANGULAR_VELOCITY)
+const velocity = r => 5 * Math.sqrt(G * TOTAL_MASS / r)
+
+const speedup = new Speedup(
+  radius(initialMass),
+  500 * velocity(VOLUME_WIDTH / 4),
+  () => 100
+)
 
 let maxVz = Number.MIN_VALUE
 let minVz = Number.MAX_VALUE
@@ -84,13 +90,16 @@ class Particle {
     const pFromCenter = this.p.map((p, i) => p - SIZE[i] / 2)
     const dFromCenter = Math.sqrt(pFromCenter.reduce((acc, val) => acc + val * val, 0))
 
+    // const massFraction = (8 * dFromCenter / VOLUME_WIDTH) ** (1 / 3)
+    const speed = velocity(dFromCenter)
+
     // Velocity vector
     this.v = [...D]
     // this.v[X] = ANGULAR_VELOCITY * dFromCenter * pFromCenter[Z] / ((SIZE[X] / 2) ** 2)
     // this.v[Y] = 0
     // this.v[Z] = -ANGULAR_VELOCITY * dFromCenter * pFromCenter[X] / ((SIZE[Z] / 2) ** 2)
-    this.v[X] = ANGULAR_VELOCITY * dFromCenter * pFromCenter[Y] / ((SIZE[X] / 2) ** 2)
-    this.v[Y] = -ANGULAR_VELOCITY * dFromCenter * pFromCenter[X] / ((SIZE[Y] / 2) ** 2)
+    this.v[X] = speed * pFromCenter[Y] / VOLUME_WIDTH
+    this.v[Y] = -speed * pFromCenter[X] / VOLUME_WIDTH
     this.v[Z] = 0
 
     // Mass
@@ -282,6 +291,7 @@ class Particle {
 
 // Initialize all the particles
 let particles = [...Array(controls.n)].map(_ => new Particle())
+speedup.nFunc = () => particles.length
 
 // The cubic outline of the space
 const FRAME_PATH = [
@@ -358,7 +368,6 @@ function draw () {
   for (const particle of particles) {
     particle.tick(dt)
   }
-  console.log('maxDv=', speedup.maxDv)
   speedup.adjust()
 
   let kineticEnergy = 0
